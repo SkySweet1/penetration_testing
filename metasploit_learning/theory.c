@@ -1,4 +1,7 @@
 /*
+запуск
+    bundle exec ./msfconsole 
+
 соединение с базой данных   
     msf > db_status
 
