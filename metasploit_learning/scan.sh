@@ -27,10 +27,25 @@ use auxiliary/scanner/http/backup_file
 set RHOSTS $TARGET_IP
 run
 
+# Проверка robots.txt (что скрыто от поисковиков)
+use auxiliary/scanner/http/robots_txt
+set RHOSTS $TARGET_IP
+run
+
+# Проверка на SQL-инъекции (вспомогательная)
+use auxiliary/scanner/http/sql_injection
+set RHOSTS $TARGET_IP
+run
+
+# Проверка заголовков безопасности
+use auxiliary/scanner/http/http_header
+set RHOSTS $TARGET_IP
+run
+
 exit
 EOF
 
-msfconsole -r $RESOURCE_FILE
+/Users/limitless/limitless/metasploit-framework/msfconsole -r $RESOURCE_FILE
 
 rm -f $RESOURCE_FILE
 echo "Done"
